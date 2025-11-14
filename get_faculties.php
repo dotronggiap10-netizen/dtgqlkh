@@ -1,9 +1,7 @@
 <?php
 require 'config.php';
-$result = $conn->query("SELECT * FROM faculties ORDER BY name");
-$faculties = [];
-while ($row = $result->fetch_assoc()) {
-    $faculties[] = $row;
-}
-echo json_encode($faculties, JSON_UNESCAPED_UNICODE);
-?>
+
+$data = $pdo->query("SELECT id, name FROM faculties ORDER BY name")->fetchAll(PDO::FETCH_ASSOC);
+
+header('Content-Type: application/json');
+echo json_encode($data);

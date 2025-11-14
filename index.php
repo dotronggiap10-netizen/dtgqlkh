@@ -83,20 +83,17 @@ require 'config.php';
                     <button type="submit" name="action" value="save_articles" class="btn">Lưu thông tin</button>
                 </div>
             </div>
+
             <div id="tabBook" class="tab-content" style="display:none">
-                <p>
-                    Tính năng thêm Sách/Giáo trình đang phát triển.
-                </p>
+                <p>Tính năng thêm Sách/Giáo trình đang phát triển.</p>
             </div>
+
             <div id="tabGuide" class="tab-content" style="display:none">
-                <p>
-                    Tính năng thêm Hướng dẫn sinh viên đang phát triển.
-                </p>
+                <p>Tính năng thêm Hướng dẫn sinh viên đang phát triển.</p>
             </div>
+
             <div id="tabPrize" class="tab-content" style="display:none">
-                <p>
-                    Tính năng thêm Giải thưởng đang phát triển.
-                </p>
+                <p>Tính năng thêm Giải thưởng đang phát triển.</p>
             </div>
         </form>
     </div>
@@ -123,7 +120,8 @@ require 'config.php';
                 deptSelect.innerHTML = '<option value="">-- Chọn Bộ môn --</option>';
 
                 if (facultyId) {
-                    fetch(`get_departments.php?faculty_id=${facultyId}`)
+                    // ĐÃ SỬA: dùng ?faculty= thay vì ?faculty_id=
+                    fetch(`get_departments.php?faculty=${facultyId}`)
                         .then(res => res.json())
                         .then(depts => {
                             depts.forEach(d => {
@@ -138,8 +136,6 @@ require 'config.php';
         });
     </script>
 
-
-    <!-- include main JS: you may put the script contents of assets/main.js here or reference file -->
     <script src="assets/main.js"></script>
 
 </body>

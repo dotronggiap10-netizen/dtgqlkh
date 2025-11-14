@@ -321,4 +321,25 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
 });
+// =============== LOAD DEPARTMENTS KHI CHỌN KHOA ================
+const facultySelect = document.getElementById("faculty");
+const departmentSelect = document.getElementById("department");
+
+if (facultySelect && departmentSelect) {
+
+    facultySelect.addEventListener("change", function () {
+        let facultyId = this.value;
+
+        fetch("get_departments.php?faculty=" + facultyId)
+            .then(res => res.json())
+            .then(data => {
+                departmentSelect.innerHTML = "<option value='0'>-- Chọn bộ môn --</option>";
+                data.forEach(d => {
+                    departmentSelect.innerHTML += `<option value="${d.id}">${d.name}</option>`;
+                });
+            })
+            .catch(err => console.error("Lỗi load department:", err));
+    });
+}
+// =============== LOAD FACULTIES ON PAGE LOAD ================
 

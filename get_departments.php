@@ -1,15 +1,11 @@
 <?php
 require 'config.php';
 
-$faculty_id = isset($_GET['faculty_id']) ? intval($_GET['faculty_id']) : 0;
-$stmt = $conn->prepare("SELECT * FROM departments WHERE faculty_id = ? ORDER BY name");
-$stmt->bind_param("i", $faculty_id);
-$stmt->execute();
-$result = $stmt->get_result();
+$faculty = intval($_GET['faculty'] ?? 0);
 
-$departments = [];
-while ($row = $result->fetch_assoc()) {
-    $departments[] = $row;
-}
-echo json_encode($departments, JSON_UNESCAPED_UNICODE);
-?>
+$stmt = $pdo->prepare("SELECT id, name FROM departments WHERE faculty_id = ?");
+$stmt->execute([$faculty]);
+
+header("Content-Type: application/json");
+echo json_encode($stmt->fetchAll(PDO::FETCH_ASSOC));
+
