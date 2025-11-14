@@ -53,21 +53,12 @@ $stmt = $pdo->prepare($sql);
 $stmt->execute($params);
 $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// Nếu không có dữ liệu
-if (!$result) {
-    echo "<h2>⚠️ Không có dữ liệu nào phù hợp!</h2>";
-    exit;
-}
-
-// Chuẩn hoá dữ liệu cho giao diện
 $rows = [];
 
 foreach ($result as $r) {
 
-    // Đề tài
     if (!empty($r['topic_title'])) {
         $files = $r['topic_files'] ? json_decode($r['topic_files'], true) : [];
-
         if (!is_array($files)) $files = [];
 
         $rows[] = [
@@ -82,10 +73,8 @@ foreach ($result as $r) {
         ];
     }
 
-    // Bài báo
     if (!empty($r['article_title'])) {
         $files = $r['article_files'] ? json_decode($r['article_files'], true) : [];
-
         if (!is_array($files)) $files = [];
 
         $rows[] = [
@@ -100,68 +89,167 @@ foreach ($result as $r) {
         ];
     }
 }
-
 ?>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
     <title>Xem dữ liệu</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+
     <style>
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
+        .header-bar {
+            background: #0d6efd;
+            padding: 15px;
+            color: white;
+            font-size: 22px;
+            font-weight: bold;
         }
-        table, th, td {
-            border: 1px solid black;
-        }
-        th, td {
-            padding: 8px;
-        }
+        .badge-topic { background: #0d6efd !important; }
+        .badge-article { background: #28a745 !important; }
+        .table-box { background: white; padding: 15px; border-radius: 10px; }
     </style>
 </head>
-<body>
+<body class="bg-light">
 
-<h2>📌 Danh sách hoạt động nghiên cứu</h2>
+<!-- HEADER -->
+<div class="header-bar d-flex justify-content-between">
+    <div>📂 Xem dữ liệu</div>
+    <a href="index.php" class="btn btn-light btn-sm">⬅ Quay về</a>
+</div>
 
-<table>
-    <thead>
-        <tr>
-            <th>Họ tên</th>
-            <th>Khoa</th>
-            <th>Bộ môn</th>
-            <th>Loại</th>
-            <th>Tên hoạt động</th>
-            <th>Tổng giờ</th>
-            <th>Giờ hoàn thành</th>
-            <th>File đính kèm</th>
-        </tr>
-    </thead>
-    <tbody>
-        <?php foreach ($rows as $row): ?>
-        <tr>
-            <td><?= htmlspecialchars($row['name']) ?></td>
-            <td><?= htmlspecialchars($row['faculty']) ?></td>
-            <td><?= htmlspecialchars($row['department']) ?></td>
-            <td><?= htmlspecialchars($row['type']) ?></td>
-            <td><?= htmlspecialchars($row['activity_name']) ?></td>
-            <td><?= htmlspecialchars($row['total_hours']) ?></td>
-            <td><?= htmlspecialchars($row['completed_hours']) ?></td>
-            <td>
-                <?php if (!empty($row['files'])): ?>
-                    <?php foreach ($row['files'] as $f): ?>
-                        <a href="<?= htmlspecialchars($f) ?>" target="_blank">Tải</a><br>
-                    <?php endforeach; ?>
-                <?php else: ?>
-                    Không có
-                <?php endif; ?>
-            </td>
-        </tr>
-        <?php endforeach; ?>
-    </tbody>
-</table>
+<div class="container mt-3">
+
+    <!-- FORM LỌC + 3 NÚT EXPORT -->
+    <form method="GET" class="row g-2 mb-3">
+
+        <!-- Chọn khoa -->
+        <div class="col-md-3">
+            <select name="faculty" class="form-select">
+                <option value="0">-- Chọn khoa --</option>
+                <?php foreach ($faculties as $f): ?>
+                <option value="<?= $f['id'] ?>" <?= $facultyFilter == $f['id'] ? 'selected' : '' ?>>
+                    <?= $f['name'] ?>
+                </option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+
+        <!-- Bộ môn -->
+        <div class="col-md-3">
+            <select name="department" id="departmentSelect" class="form-select">
+                <option value="0">-- Chọn bộ môn --</option>
+            </select>
+        </div>
+
+        <!-- Tìm kiếm -->
+        <div class="col-md-3">
+            <input type="text" name="q" class="form-control" placeholder="Tìm theo tên..." value="<?= htmlspecialchars($search) ?>">
+        </div>
+
+        <!-- Nút lọc -->
+        <div class="col-md-3">
+            <button class="btn btn-primary w-100">Lọc</button>
+        </div>
+
+        <!-- Xuất Excel -->
+        <div class="col-md-3">
+            <a href="export_excel.php?<?= http_build_query($_GET) ?>" class="btn btn-success w-100">📊 Xuất Excel</a>
+        </div>
+
+        <!-- Xuất PDF -->
+        <div class="col-md-3">
+            <a href="export_pdf.php?<?= http_build_query($_GET) ?>" class="btn btn-danger w-100">📄 Xuất PDF</a>
+        </div>
+
+        <!-- Tải tất cả file -->
+        <div class="col-md-3">
+            <a href="download_all.php?<?= http_build_query($_GET) ?>" class="btn btn-secondary w-100">⬇ Tải file</a>
+        </div>
+
+    </form>
+
+    <!-- BẢNG DỮ LIỆU -->
+    <div class="table-box shadow-sm">
+
+        <table class="table table-bordered table-striped">
+            <thead class="table-primary">
+                <tr>
+                    <th>Họ tên</th>
+                    <th>Khoa</th>
+                    <th>Bộ môn</th>
+                    <th>Loại</th>
+                    <th>Hoạt động</th>
+                    <th>Tổng giờ</th>
+                    <th>Hoàn thành</th>
+                    <th>File</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                <?php foreach ($rows as $row): ?>
+                <tr>
+                    <td><?= $row['name'] ?></td>
+                    <td><?= $row['faculty'] ?></td>
+                    <td><?= $row['department'] ?></td>
+
+                    <td>
+                        <?php if ($row['type'] == "Đề tài"): ?>
+                            <span class="badge badge-topic">Đề tài</span>
+                        <?php else: ?>
+                            <span class="badge badge-article">Bài báo</span>
+                        <?php endif; ?>
+                    </td>
+
+                    <td><?= $row['activity_name'] ?></td>
+                    <td><?= $row['total_hours'] ?></td>
+                    <td><?= $row['completed_hours'] ?></td>
+
+                    <td>
+                        <?php if (!empty($row['files'])): ?>
+                            <?php foreach ($row['files'] as $f): ?>
+                                <a href="<?= $f ?>" target="_blank" class="d-block">
+                                    📎 <?= basename($f) ?>
+                                </a>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            Không có
+                        <?php endif; ?>
+                    </td>
+
+                </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- AJAX load bộ môn -->
+<script>
+$(document).ready(function() {
+    function loadDepartments() {
+        let facultyId = <?= $facultyFilter ?>;
+        let deptSelected = <?= $deptFilter ?>;
+
+        if (facultyId === 0) return;
+
+        $.get("get_departments.php?faculty_id=" + facultyId, function(data) {
+            $("#departmentSelect").html('<option value="0">-- Chọn bộ môn --</option>');
+            let list = JSON.parse(data);
+
+            list.forEach(item => {
+                let sel = item.id == deptSelected ? "selected" : "";
+                $("#departmentSelect").append(`<option value="${item.id}" ${sel}>${item.name}</option>`);
+            });
+        });
+    }
+
+    loadDepartments();
+});
+</script>
 
 </body>
 </html>
-
